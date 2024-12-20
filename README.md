@@ -6,9 +6,10 @@ It requires Gnu Radio, gr-osmosdr, and you'll need to install the
 
 
 ## Installation and usage
-#### Original Author: Marcus Leech, Canadian Centre for Experimental Radio Astronomy
+#### Original Author: Marcus Leech, Canadian Centre for Experimental Radio Astronomy 
+https://github.com/ccera-astro/spectro_radiometer
 #### MODIFIED Translated on Python3 and Gnuradio 3.10 Author: Pierre Terrier 
-
+https://github.com/Radio-Source/Spectro-Radiometer
 
 ### Introduction
 This document describes the installation, system requirements, and usage of the Gnu Radio application known as **[Spectro-Radiometer](https://github.com/Radio-Source/Spectro-Radiometer)**.
@@ -20,7 +21,7 @@ The system hardware should be a fairly-modern, multi-core system, preferably X86
 
 There should be at least 2G of system memory, with a basic clock speed of at least 1.4GHz for X86 systems, and 1.8GHz for ARM systems.
 
-### Cavaets
+### Canvaets
 This document **DOES NOT** cover basic system installation procedures and requirements.  If you aren't familiar with Ubuntu installation procedures, and basic system management tasks, you should **BECOME FAMILIAR WITH THOSE FIRST**.
 
 ### SDR requirements
