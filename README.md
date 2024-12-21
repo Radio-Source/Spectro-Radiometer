@@ -65,8 +65,11 @@ cd Spectro-Radiometer
 #### Invoking Spectro-Radiometer
 Spectro-Radiometer is a Python3 script run by
 
-python3 SpectroRadiometer.py (if you use RTL-SDR with default [args])
-python3 SpectroRadiometer.py [args*] --> see documentation for [args] (if you use another type of SDR  and or using some [args] differents)
+python3 SpectroRadiometer.py (if you use RTL-SDR by default)
+
+python3 SpectroRadiometer.py [args*] --> see documentation for [args] 
+
+(if you use another type of SDR  and or using some [args] differents)
 
 The application takes many options and command line parameters [args]:
 
