@@ -1522,6 +1522,9 @@ def argument_parser():
         "--decln", dest="decln", type=eng_float, default=eng_notation.num_to_str(float(0)),
         help="Set Observing Declination [default=%(default)r]")
     parser.add_argument(
+        "--device", dest="device", type=str, default="rtl=0 file=/dev/zero,rate=2.50e6",
+        help="Set SDR Device Name [default=%(default)r]")
+    parser.add_argument(
         "--dfreq", dest="dfreq", type=eng_float, default=eng_notation.num_to_str(float(0.0)),
         help="Set Alternet Doppler Cente Frequency [default=%(default)r]")
     parser.add_argument(
@@ -1578,7 +1581,7 @@ def main(top_block_cls=SpectroRadiometer, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(abw=options.abw, antenna=options.antenna, baseline=options.baseline, bbgain=options.bbgain, clock=options.clock, dcg=options.dcg, decln=options.decln, dfreq=options.dfreq, fbsize=options.fbsize, fftsize=options.fftsize, frequency=options.frequency, gain=options.gain, ifgain=options.ifgain, integration=options.integration, latitude=options.latitude, longitude=options.longitude, ppstime=options.ppstime, psrmode=options.psrmode, ra=options.ra, spec_interval=options.spec_interval, srate=options.srate, tp_interval=options.tp_interval, zerotime=options.zerotime)
+    tb = top_block_cls(abw=options.abw, antenna=options.antenna, baseline=options.baseline, bbgain=options.bbgain, clock=options.clock, dcg=options.dcg, decln=options.decln, device=options.device, dfreq=options.dfreq, fbsize=options.fbsize, fftsize=options.fftsize, frequency=options.frequency, gain=options.gain, ifgain=options.ifgain, integration=options.integration, latitude=options.latitude, longitude=options.longitude, ppstime=options.ppstime, psrmode=options.psrmode, ra=options.ra, spec_interval=options.spec_interval, srate=options.srate, tp_interval=options.tp_interval, zerotime=options.zerotime)
 
     tb.start()
 

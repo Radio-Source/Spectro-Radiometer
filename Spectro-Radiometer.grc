@@ -1658,7 +1658,7 @@ blocks:
     hide: none
     label: SDR Device Name
     short_id: ''
-    type: ''
+    type: str
     value: '"rtl=0 file=/dev/zero,rate=2.50e6"'
   states:
     bus_sink: false
@@ -1966,7 +1966,7 @@ blocks:
       \ baseline_buffer\n    global fft_buffer\n    global baseline_buffer2\n    global\
       \ fft2_buffer\n    \n    if thing != 0:\n        baseline_buffer = [0.0]*len(fft_buffer)\n\
       \        baseline_buffer2 = [0.0]*len(fft2_buffer)\n\ndef lmst_string(pacer,longitude):\n\
-      \    return cur_sidereal(longitude).replace(\",\", \":\")\n\n\nTPLEN=3600\n\
+      \    return cur_sidereal(longitude).replace(\",\", \":\")\n\n\n\nTPLEN=3600\n\
       tp_vect=[0.0]*TPLEN\ntp_vect2=[0.0]*TPLEN\ndef get_tp_vect(pacer):\n    global\
       \ tp_vect\n    global tp_vect2\n    global dpwr\n    global apwr\n    global\
       \ TPLEN\n    \n    \n    tp_vect=tp_vect[0:(TPLEN-1)]\n    tp_vect=[dpwr]+tp_vect\n\
