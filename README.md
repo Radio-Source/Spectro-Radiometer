@@ -177,7 +177,7 @@ On the command line, to indicate that differential observations should be used.
 
 #### Single AirSpy
 To use an AirSpy:
-```--device "airspy=0 file=/dev/zero,rate=20e6"```
+```--device "airspy=0 file=/dev/zero,rate=2.5e6"  --srate=2.5e6```
 You will need to specify a `–srate` option that is compatible with the hardware. For *AirSpy R2*, available rates are 10e6 and 2.5e6. For *AirSpy Mini* available rates are 3.0e6 and 6.0e6.
 
 #### USRP B2xx
