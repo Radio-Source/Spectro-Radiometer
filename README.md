@@ -47,7 +47,7 @@ sudo apt install git
 
 sudo apt install python3-pip
 
-python3 -m  pip install ephem
+pip install --user ephem --break-system-packages
 
 #### Radio SDR
 

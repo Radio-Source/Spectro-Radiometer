@@ -55,7 +55,7 @@ sudo apt install python3-pip
 ```
 
 ``` {.western style="margin-left: 0.38in; font-weight: normal"}
-python3 -m  pip install ephem
+pip install --user ephem --break-system-packages
 ```
 
 1.  ### Gnu Radio
