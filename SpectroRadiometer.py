@@ -5,7 +5,8 @@
 # SPDX-License-Identifier: GPL-3.0
 #
 # GNU Radio Python Flow Graph
-# Title: Spectral and Radiometry Receiver
+# Title: Spectro Radiometer
+# Author: smrt
 # GNU Radio version: 3.10.9.2
 
 from PyQt5 import Qt
@@ -24,22 +25,22 @@ import signal
 from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
+import SpectroRadiometer_helper as helper  # embedded python module
 import math
 import numpy as np
 import osmosdr
 import time
 import sip
-import spectro_radiometer_spectro_helper as spectro_helper  # embedded python module
 import threading
 
 
 
-class spectro_radiometer(gr.top_block, Qt.QWidget):
+class SpectroRadiometer(gr.top_block, Qt.QWidget):
 
     def __init__(self, abw=4.0e6, antenna='RX2', baseline=20, bbgain=5, clock='default', dcg=100, decfile="", decln=0, device="rtl=0 file=/dev/zero,rate=2.50e6", dfreq=0.0, fbsize=128, fftsize=2048, frequency=1420.4058e6, gain=30, ifgain=5, integration=0.5, latitude=44.9, longitude=(-76.03), mode="total", ppstime='internal', prefix="h1", psrmode=0, ra=12.0, rfilist="", spec_interval=15, srate=2.50e6, tp_interval=2, zerofile="", zerotime=99.3):
-        gr.top_block.__init__(self, "Spectral and Radiometry Receiver", catch_exceptions=True)
+        gr.top_block.__init__(self, "Spectro Radiometer", catch_exceptions=True)
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("Spectral and Radiometry Receiver")
+        self.setWindowTitle("Spectro Radiometer")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -57,7 +58,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "spectro_radiometer")
+        self.settings = Qt.QSettings("GNU Radio", "SpectroRadiometer")
 
         try:
             geometry = self.settings.value("geometry")
@@ -117,7 +118,6 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
         self.gmdate = gmdate = "%04d%02d%02d" % (ltp.tm_year, ltp.tm_mon, ltp.tm_mday)
         self.ebw = ebw = (samp_rate*0.8)/1.0e6
         self.win = win = fft.window.blackmanharris(fftsize)
-        self.time_pacer = time_pacer = [-100.0]*fftsize
         self.set_baseline = set_baseline = 0
         self.pparamstr = pparamstr = "%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (psrate/1e3, pchanwidth/1e3, ifreq/1.0e6,samp_rate/1.0e6,ebw,fbsize)
         self.pparam = pparam = prefix+"-"+gmdate+"-psr.params" if psrmode != 0 else "/dev/null"
@@ -129,7 +129,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
         self.fft_avg = fft_avg = integration
         self.fft2_probed = fft2_probed = [-100.0]*fftsize
         self.enable_normalize = enable_normalize = 0
-        self.declination = declination = spectro_helper.get_decln(ui_decln,decfile,tp_pacer)
+        self.declination = declination = helper.get_decln(ui_decln,decfile,tp_pacer)
         self.dcgain = dcgain = dcg
         self.custom_window = custom_window = sinc*np.hamming(nphase*nchan)
         self.corr_probed = corr_probed = complex(0.0,0.0)
@@ -139,29 +139,30 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
         self.wrstatus = wrstatus = open(pparam, "w").write(pparamstr)
         self.winsum = winsum = sum(map(lambda x:x*x, win))
         self.wchan = wchan = 0
-        self.variable_qtgui_label_0 = variable_qtgui_label_0 = spectro_helper.lmst_string(time_pacer,longitude)
-        self.start_km = start_km = spectro_helper.doppler_start(ifreq,dfreq,samp_rate)
-        self.spec_labels = spec_labels = spectro_helper.get_spec_labels(mode)
-        self.secondary_lmst_label = secondary_lmst_label = spectro_helper.lmst_string(time_pacer,longitude)
+        self.variable_qtgui_label_0 = variable_qtgui_label_0 = 'spectro_helper.lmst_string(time_pacer,longitude)'
+        self.time_pacer = time_pacer = [-100.0]*fftsize
+        self.start_km = start_km = helper.doppler_start(ifreq,dfreq,samp_rate)
+        self.spec_labels = spec_labels = helper.get_spec_labels(mode)
+        self.secondary_lmst_label = secondary_lmst_label = 'spectro_helper.lmst_string(time_pacer,longitude)'
         self.save_filter = save_filter = open("poopy.dat", "w").write(str(list(custom_window)))
         self.psrfilename = psrfilename = prefix+"-"+gmdate+"-psr.rfb8" if psrmode != 0 else "/dev/null"
         self.mode_map = mode_map = {"total" : "Continuum Power", "tp" : "Continuum Power", "diff" : "Differential/Added Power", "differential" : "Differential/Added Power", "correlator" : "Cross  Power", "interferometer": "Cross Power", "corr" : "Cross Power"}
         self.km_incr = km_incr = (((samp_rate/fftsize)/ifreq)*299792)*-1.0
         self.igain = igain = gain
-        self.frotate = frotate = spectro_helper.fringe_stop (tp_pacer, ra, decln, longitude, latitude, baseline, fstop, ang, ifreq)
+        self.frotate = frotate = helper.fringe_stop (tp_pacer, ra, decln, longitude, latitude, baseline, fstop, ang, ifreq)
         self.fringe_label = fringe_label = (1.0/frate)
         self.fincr = fincr = (samp_rate/1.0e6)/fftsize
         self.fftrate = fftrate = float(samp_rate/fftsize)
-        self.fft_log_status = fft_log_status = spectro_helper.fft_log(fft_probed,fft2_probed,corr_probed,ifreq,samp_rate,longitude,enable_normalize,prefix,declination,rfilist,dcgain,fft_avg,mode,zerotime,decfile,tp_interval,spec_interval,fft_hz)
+        self.fft_log_status = fft_log_status = helper.fft_log(fft_probed,fft2_probed,corr_probed,ifreq,samp_rate,longitude,enable_normalize,prefix,declination,rfilist,dcgain,fft_avg,mode,zerotime,decfile,tp_interval,spec_interval,fft_hz)
         self.dcblock = dcblock = True
-        self.curr_tp_vect = curr_tp_vect = spectro_helper.get_tp_vect(tp_pacer)
-        self.curr_dx2 = curr_dx2 = spectro_helper.curr_diff(fft_probed,enable_normalize,fftsize,1)
-        self.curr_dx = curr_dx = spectro_helper.curr_diff(fft_probed,enable_normalize,fftsize,0)
+        self.curr_tp_vect = curr_tp_vect = helper.get_tp_vect(tp_pacer)
+        self.curr_dx2 = curr_dx2 = helper.curr_diff(fft_probed,enable_normalize,fftsize,1)
+        self.curr_dx = curr_dx = helper.curr_diff(fft_probed,enable_normalize,fftsize,0)
         self.clk_deriv = clk_deriv = 'None if clock in ["none", "default"] else clock'
-        self.baseline_set_status = baseline_set_status = spectro_helper.baseline_setter(set_baseline)
-        self.baseline_clear_status = baseline_clear_status = spectro_helper.baseline_clearer(clear_baseline)
-        self.anno_status = anno_status = spectro_helper.do_annotation(ira,declination,baseline,annotation,srate*0.8,abw,ifreq,srate,prefix)
-        self.actual_dec_label = actual_dec_label = spectro_helper.get_decln(ui_decln,decfile,tp_pacer)
+        self.baseline_set_status = baseline_set_status = helper.baseline_setter(set_baseline)
+        self.baseline_clear_status = baseline_clear_status = helper.baseline_clearer(clear_baseline)
+        self.anno_status = anno_status = helper.do_annotation(ira,declination,baseline,annotation,srate*0.8,abw,ifreq,srate,prefix)
+        self.actual_dec_label = actual_dec_label = helper.get_decln(ui_decln,decfile,tp_pacer)
 
         ##################################################
         # Blocks
@@ -312,10 +313,10 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
         _time_pacer_thread = threading.Thread(target=_time_pacer_probe)
         _time_pacer_thread.daemon = True
         _time_pacer_thread.start()
-        self.single_pole_iir_filter_xx_2 = filter.single_pole_iir_filter_cc((spectro_helper.getalpha(frate/2.0,fft_hz)), 1)
-        self.single_pole_iir_filter_xx_1 = filter.single_pole_iir_filter_cc((spectro_helper.getalpha(fft_hz/2.0,samp_rate)), 1)
-        self.single_pole_iir_filter_xx_0_0 = filter.single_pole_iir_filter_ff((spectro_helper.getalpha(fft_hz/2.0,fftrate)), fftsize)
-        self.single_pole_iir_filter_xx_0 = filter.single_pole_iir_filter_ff((spectro_helper.getalpha(fft_hz/2.0,fftrate)), fftsize)
+        self.single_pole_iir_filter_xx_2 = filter.single_pole_iir_filter_cc((helper.getalpha(frate/2.0,fft_hz)), 1)
+        self.single_pole_iir_filter_xx_1 = filter.single_pole_iir_filter_cc((helper.getalpha(fft_hz/2.0,samp_rate)), 1)
+        self.single_pole_iir_filter_xx_0_0 = filter.single_pole_iir_filter_ff((helper.getalpha(fft_hz/2.0,fftrate)), fftsize)
+        self.single_pole_iir_filter_xx_0 = filter.single_pole_iir_filter_ff((helper.getalpha(fft_hz/2.0,fftrate)), fftsize)
         _set_baseline_push_button = Qt.QPushButton('Set Baseline')
         _set_baseline_push_button = Qt.QPushButton('Set Baseline')
         self._set_baseline_choices = {'Pressed': 1, 'Released': 0}
@@ -434,7 +435,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
         self.qtgui_vector_sink_f_0_0.set_ref_level(0)
 
 
-        labels = [spectro_helper.plotlabel(mode,0), spectro_helper.plotlabel(mode,1), '', '', '',
+        labels = ['spectro_helper.plotlabel(mode,0)', 'spectro_helper.plotlabel(mode,1)', '', '', '',
             '', '', '', '', '']
         widths = [1, 1, 1, 1, 1,
             1, 1, 1, 1, 1]
@@ -779,7 +780,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "spectro_radiometer")
+        self.settings = Qt.QSettings("GNU Radio", "SpectroRadiometer")
         self.settings.setValue("geometry", self.saveGeometry())
         self.stop()
         self.wait()
@@ -791,7 +792,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_abw(self, abw):
         self.abw = abw
-        self.set_anno_status(spectro_helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
+        self.set_anno_status(helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
         self.osmosdr_source_0.set_bandwidth(self.abw, 0)
         self.osmosdr_source_0.set_bandwidth(self.abw, 1)
 
@@ -808,9 +809,9 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_baseline(self, baseline):
         self.baseline = baseline
-        self.set_anno_status(spectro_helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
+        self.set_anno_status(helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
         self.set_frate((self.baseline/self.wlam)*7.3e-5*math.cos(math.radians(self.ui_decln)))
-        self.set_frotate(spectro_helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
+        self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
 
     def get_bbgain(self):
         return self.bbgain
@@ -838,16 +839,16 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_decfile(self, decfile):
         self.decfile = decfile
-        self.set_actual_dec_label(spectro_helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
-        self.set_declination(spectro_helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_actual_dec_label(helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
+        self.set_declination(helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_decln(self):
         return self.decln
 
     def set_decln(self, decln):
         self.decln = decln
-        self.set_frotate(spectro_helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
+        self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
         self.set_ui_decln(self.decln)
 
     def get_device(self):
@@ -861,7 +862,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_dfreq(self, dfreq):
         self.dfreq = dfreq
-        self.set_start_km(spectro_helper.doppler_start(self.ifreq,self.dfreq,self.samp_rate))
+        self.set_start_km(helper.doppler_start(self.ifreq,self.dfreq,self.samp_rate))
 
     def get_fbsize(self):
         return self.fbsize
@@ -876,8 +877,8 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_fftsize(self, fftsize):
         self.fftsize = fftsize
-        self.set_curr_dx(spectro_helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,0))
-        self.set_curr_dx2(spectro_helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,1))
+        self.set_curr_dx(helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,0))
+        self.set_curr_dx2(helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,1))
         self.set_fft2_probed([-100.0]*self.fftsize)
         self.set_fft_probed([-100.0]*self.fftsize)
         self.set_fftrate(float(self.samp_rate/self.fftsize))
@@ -930,25 +931,23 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_latitude(self, latitude):
         self.latitude = latitude
-        self.set_frotate(spectro_helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
+        self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
 
     def get_longitude(self):
         return self.longitude
 
     def set_longitude(self, longitude):
         self.longitude = longitude
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
-        self.set_frotate(spectro_helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
-        self.set_secondary_lmst_label(spectro_helper.lmst_string(self.time_pacer,self.longitude))
-        self.set_variable_qtgui_label_0(spectro_helper.lmst_string(self.time_pacer,self.longitude))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
 
     def get_mode(self):
         return self.mode
 
     def set_mode(self, mode):
         self.mode = mode
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
-        self.set_spec_labels(spectro_helper.get_spec_labels(self.mode))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_spec_labels(helper.get_spec_labels(self.mode))
 
     def get_ppstime(self):
         return self.ppstime
@@ -961,8 +960,8 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_prefix(self, prefix):
         self.prefix = prefix
-        self.set_anno_status(spectro_helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_anno_status(helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
         self.set_pparam(self.prefix+"-"+self.gmdate+"-psr.params" if self.psrmode != 0 else "/dev/null")
         self.set_psrfilename(self.prefix+"-"+self.gmdate+"-psr.rfb8" if self.psrmode != 0 else "/dev/null")
 
@@ -979,7 +978,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_ra(self, ra):
         self.ra = ra
-        self.set_frotate(spectro_helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
+        self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
         self.set_ira(self.ra)
 
     def get_rfilist(self):
@@ -987,21 +986,21 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_rfilist(self, rfilist):
         self.rfilist = rfilist
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_spec_interval(self):
         return self.spec_interval
 
     def set_spec_interval(self, spec_interval):
         self.spec_interval = spec_interval
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_srate(self):
         return self.srate
 
     def set_srate(self, srate):
         self.srate = srate
-        self.set_anno_status(spectro_helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
+        self.set_anno_status(helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
         self.set_samp_rate(int(self.srate))
 
     def get_tp_interval(self):
@@ -1009,7 +1008,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_tp_interval(self, tp_interval):
         self.tp_interval = tp_interval
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_zerofile(self):
         return self.zerofile
@@ -1022,7 +1021,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_zerotime(self, zerotime):
         self.zerotime = zerotime
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_nphase(self):
         return self.nphase
@@ -1057,21 +1056,21 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.set_ebw((self.samp_rate*0.8)/1.0e6)
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
         self.set_fftrate(float(self.samp_rate/self.fftsize))
         self.set_fincr((self.samp_rate/1.0e6)/self.fftsize)
         self.set_km_incr((((self.samp_rate/self.fftsize)/self.ifreq)*299792)*-1.0)
         self.set_pchanwidth(self.samp_rate/self.fbsize)
         self.set_pparamstr("%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (self.psrate/1e3, self.pchanwidth/1e3, self.ifreq/1.0e6,self.samp_rate/1.0e6,self.ebw,self.fbsize))
         self.set_psrate(self.samp_rate/self.fftsize)
-        self.set_start_km(spectro_helper.doppler_start(self.ifreq,self.dfreq,self.samp_rate))
+        self.set_start_km(helper.doppler_start(self.ifreq,self.dfreq,self.samp_rate))
         self.blocks_keep_one_in_n_0.set_n((int((self.samp_rate/self.fftsize)/50)))
         self.blocks_keep_one_in_n_0_0.set_n((int((self.samp_rate/self.fftsize)/50)))
         self.blocks_keep_one_in_n_1.set_n((int(self.samp_rate/self.fft_hz)))
         self.osmosdr_source_0.set_sample_rate(self.samp_rate)
         self.qtgui_vector_sink_f_0_1.set_x_axis(((self.ifreq-self.samp_rate/2)/1.0e6), self.fincr)
         self.qtgui_waterfall_sink_x_0.set_frequency_range(self.ifreq, self.samp_rate)
-        self.single_pole_iir_filter_xx_1.set_taps((spectro_helper.getalpha(self.fft_hz/2.0,self.samp_rate)))
+        self.single_pole_iir_filter_xx_1.set_taps((helper.getalpha(self.fft_hz/2.0,self.samp_rate)))
 
     def get_ltp(self):
         return self.ltp
@@ -1084,13 +1083,13 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_ifreq(self, ifreq):
         self.ifreq = ifreq
-        self.set_anno_status(spectro_helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
-        self.set_frotate(spectro_helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
+        self.set_anno_status(helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
         Qt.QMetaObject.invokeMethod(self._ifreq_line_edit, "setText", Qt.Q_ARG("QString", eng_notation.num_to_str(self.ifreq)))
         self.set_km_incr((((self.samp_rate/self.fftsize)/self.ifreq)*299792)*-1.0)
         self.set_pparamstr("%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (self.psrate/1e3, self.pchanwidth/1e3, self.ifreq/1.0e6,self.samp_rate/1.0e6,self.ebw,self.fbsize))
-        self.set_start_km(spectro_helper.doppler_start(self.ifreq,self.dfreq,self.samp_rate))
+        self.set_start_km(helper.doppler_start(self.ifreq,self.dfreq,self.samp_rate))
         self.set_wlam(299792000.0/self.ifreq)
         self.osmosdr_source_0.set_center_freq(self.ifreq, 0)
         self.osmosdr_source_0.set_center_freq(self.ifreq, 1)
@@ -1109,8 +1108,8 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_ui_decln(self, ui_decln):
         self.ui_decln = ui_decln
-        self.set_actual_dec_label(spectro_helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
-        self.set_declination(spectro_helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
+        self.set_actual_dec_label(helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
+        self.set_declination(helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
         self.set_frate((self.baseline/self.wlam)*7.3e-5*math.cos(math.radians(self.ui_decln)))
         Qt.QMetaObject.invokeMethod(self._ui_decln_line_edit, "setText", Qt.Q_ARG("QString", eng_notation.num_to_str(self.ui_decln)))
 
@@ -1119,10 +1118,10 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_tp_pacer(self, tp_pacer):
         self.tp_pacer = tp_pacer
-        self.set_actual_dec_label(spectro_helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
-        self.set_curr_tp_vect(spectro_helper.get_tp_vect(self.tp_pacer))
-        self.set_declination(spectro_helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
-        self.set_frotate(spectro_helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
+        self.set_actual_dec_label(helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
+        self.set_curr_tp_vect(helper.get_tp_vect(self.tp_pacer))
+        self.set_declination(helper.get_decln(self.ui_decln,self.decfile,self.tp_pacer))
+        self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
 
     def get_sinc(self):
         return self.sinc
@@ -1168,20 +1167,12 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
         self.win = win
         self.set_winsum(sum(map(lambda x:x*x, self.win)))
 
-    def get_time_pacer(self):
-        return self.time_pacer
-
-    def set_time_pacer(self, time_pacer):
-        self.time_pacer = time_pacer
-        self.set_secondary_lmst_label(spectro_helper.lmst_string(self.time_pacer,self.longitude))
-        self.set_variable_qtgui_label_0(spectro_helper.lmst_string(self.time_pacer,self.longitude))
-
     def get_set_baseline(self):
         return self.set_baseline
 
     def set_set_baseline(self, set_baseline):
         self.set_baseline = set_baseline
-        self.set_baseline_set_status(spectro_helper.baseline_setter(self.set_baseline))
+        self.set_baseline_set_status(helper.baseline_setter(self.set_baseline))
 
     def get_pparamstr(self):
         return self.pparamstr
@@ -1202,7 +1193,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_ira(self, ira):
         self.ira = ira
-        self.set_anno_status(spectro_helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
+        self.set_anno_status(helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
         Qt.QMetaObject.invokeMethod(self._ira_line_edit, "setText", Qt.Q_ARG("QString", eng_notation.num_to_str(self.ira)))
 
     def get_fstop(self):
@@ -1210,7 +1201,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_fstop(self, fstop):
         self.fstop = fstop
-        self.set_frotate(spectro_helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
+        self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
         self._fstop_callback(self.fstop)
 
     def get_frate(self):
@@ -1219,59 +1210,59 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
     def set_frate(self, frate):
         self.frate = frate
         self.set_fringe_label((1.0/self.frate))
-        self.single_pole_iir_filter_xx_2.set_taps((spectro_helper.getalpha(self.frate/2.0,self.fft_hz)))
+        self.single_pole_iir_filter_xx_2.set_taps((helper.getalpha(self.frate/2.0,self.fft_hz)))
 
     def get_fft_probed(self):
         return self.fft_probed
 
     def set_fft_probed(self, fft_probed):
         self.fft_probed = fft_probed
-        self.set_curr_dx(spectro_helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,0))
-        self.set_curr_dx2(spectro_helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,1))
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_curr_dx(helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,0))
+        self.set_curr_dx2(helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,1))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_fft_hz(self):
         return self.fft_hz
 
     def set_fft_hz(self, fft_hz):
         self.fft_hz = fft_hz
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
         self.blocks_keep_one_in_n_1.set_n((int(self.samp_rate/self.fft_hz)))
-        self.single_pole_iir_filter_xx_0.set_taps((spectro_helper.getalpha(self.fft_hz/2.0,self.fftrate)))
-        self.single_pole_iir_filter_xx_0_0.set_taps((spectro_helper.getalpha(self.fft_hz/2.0,self.fftrate)))
-        self.single_pole_iir_filter_xx_1.set_taps((spectro_helper.getalpha(self.fft_hz/2.0,self.samp_rate)))
-        self.single_pole_iir_filter_xx_2.set_taps((spectro_helper.getalpha(self.frate/2.0,self.fft_hz)))
+        self.single_pole_iir_filter_xx_0.set_taps((helper.getalpha(self.fft_hz/2.0,self.fftrate)))
+        self.single_pole_iir_filter_xx_0_0.set_taps((helper.getalpha(self.fft_hz/2.0,self.fftrate)))
+        self.single_pole_iir_filter_xx_1.set_taps((helper.getalpha(self.fft_hz/2.0,self.samp_rate)))
+        self.single_pole_iir_filter_xx_2.set_taps((helper.getalpha(self.frate/2.0,self.fft_hz)))
 
     def get_fft_avg(self):
         return self.fft_avg
 
     def set_fft_avg(self, fft_avg):
         self.fft_avg = fft_avg
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_fft2_probed(self):
         return self.fft2_probed
 
     def set_fft2_probed(self, fft2_probed):
         self.fft2_probed = fft2_probed
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_enable_normalize(self):
         return self.enable_normalize
 
     def set_enable_normalize(self, enable_normalize):
         self.enable_normalize = enable_normalize
-        self.set_curr_dx(spectro_helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,0))
-        self.set_curr_dx2(spectro_helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,1))
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_curr_dx(helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,0))
+        self.set_curr_dx2(helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,1))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_declination(self):
         return self.declination
 
     def set_declination(self, declination):
         self.declination = declination
-        self.set_anno_status(spectro_helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_anno_status(helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_dcgain(self):
         return self.dcgain
@@ -1279,7 +1270,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
     def set_dcgain(self, dcgain):
         self.dcgain = dcgain
         self._dcgain_callback(self.dcgain)
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_custom_window(self):
         return self.custom_window
@@ -1297,21 +1288,21 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_corr_probed(self, corr_probed):
         self.corr_probed = corr_probed
-        self.set_fft_log_status(spectro_helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
     def get_clear_baseline(self):
         return self.clear_baseline
 
     def set_clear_baseline(self, clear_baseline):
         self.clear_baseline = clear_baseline
-        self.set_baseline_clear_status(spectro_helper.baseline_clearer(self.clear_baseline))
+        self.set_baseline_clear_status(helper.baseline_clearer(self.clear_baseline))
 
     def get_annotation(self):
         return self.annotation
 
     def set_annotation(self, annotation):
         self.annotation = annotation
-        self.set_anno_status(spectro_helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
+        self.set_anno_status(helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
         Qt.QMetaObject.invokeMethod(self._annotation_line_edit, "setText", Qt.Q_ARG("QString", str(self.annotation)))
 
     def get_ang(self):
@@ -1319,7 +1310,7 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_ang(self, ang):
         self.ang = ang
-        self.set_frotate(spectro_helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
+        self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
 
     def get_wrstatus(self):
         return self.wrstatus
@@ -1348,6 +1339,12 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
     def set_variable_qtgui_label_0(self, variable_qtgui_label_0):
         self.variable_qtgui_label_0 = variable_qtgui_label_0
         Qt.QMetaObject.invokeMethod(self._variable_qtgui_label_0_label, "setText", Qt.Q_ARG("QString", str(self._variable_qtgui_label_0_formatter(self.variable_qtgui_label_0))))
+
+    def get_time_pacer(self):
+        return self.time_pacer
+
+    def set_time_pacer(self, time_pacer):
+        self.time_pacer = time_pacer
 
     def get_start_km(self):
         return self.start_km
@@ -1429,8 +1426,8 @@ class spectro_radiometer(gr.top_block, Qt.QWidget):
 
     def set_fftrate(self, fftrate):
         self.fftrate = fftrate
-        self.single_pole_iir_filter_xx_0.set_taps((spectro_helper.getalpha(self.fft_hz/2.0,self.fftrate)))
-        self.single_pole_iir_filter_xx_0_0.set_taps((spectro_helper.getalpha(self.fft_hz/2.0,self.fftrate)))
+        self.single_pole_iir_filter_xx_0.set_taps((helper.getalpha(self.fft_hz/2.0,self.fftrate)))
+        self.single_pole_iir_filter_xx_0_0.set_taps((helper.getalpha(self.fft_hz/2.0,self.fftrate)))
 
     def get_fft_log_status(self):
         return self.fft_log_status
@@ -1575,7 +1572,7 @@ def argument_parser():
     return parser
 
 
-def main(top_block_cls=spectro_radiometer, options=None):
+def main(top_block_cls=SpectroRadiometer, options=None):
     if options is None:
         options = argument_parser().parse_args()
 

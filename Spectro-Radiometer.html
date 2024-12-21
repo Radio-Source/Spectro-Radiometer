@@ -50,25 +50,25 @@ requirements, and usage of the <i>Gnu Radio</i> application known as
 Requirements</font></font></p>
 <p class="western"><span style="font-weight: normal">This document
 assumes that you have already installed </span><i><span style="font-weight: normal">Ubuntu
-18.04 LTS</span></i><span style="font-weight: normal"> onto your
+24.04 LTS</span></i><span style="font-weight: normal"> onto your
 system. The instructions given here would need to be modified for
 other </span><i><span style="font-weight: normal">Linux</span></i><span style="font-weight: normal">
 distributions, and </span><i><span style="font-weight: normal">Ubuntu</span></i><span style="font-weight: normal">
 is one of the more popular distributions.</span></p>
 <p class="western"><span style="font-weight: normal">The system
 hardware should be a fairly-modern, multi-core system, preferably
-X86-based, but some of the higher-end ARM SBCs, like the </span><i><span style="font-weight: normal">Odroid
+X86-based, but some of the higher-end ARM SBCs, like the </span><i><span style="font-weight: normal">Raspberry Pi</span> or <span style="font-weight: normal">Odroid
 N2 </span></i><span style="font-weight: normal">and </span><i><span style="font-weight: normal">XU4</span></i><span style="font-weight: normal">
 will also work, albeit at lower sample rates.</span></p>
 <p class="western" style="font-weight: normal">There should be at
 least 2G of system memory, with a basic clock speed of at least
 1.4GHz for X86 systems, and 1.8GHz for ARM systems.</p>
 <p style="margin-top: 0.17in; margin-bottom: 0.08in; font-weight: normal; line-height: 100%; page-break-after: avoid">
-<font face="Liberation Sans, Arial, sans-serif"><font size="4" style="font-size: 14pt">Caveats</font></font></p>
+<font face="Liberation Sans, Arial, sans-serif"><font size="4" style="font-size: 14pt">Canveats</font></font></p>
 <p class="western"><span style="font-weight: normal">This document</span><b>
 DOES NOT</b><span style="font-weight: normal"> cover basic system
 installation procedures and requirements.  If you aren't familiar
-with Ubuntu 18.04 installation procedures, and basic system
+with Ubuntu 24.04 installation procedures, and basic system
 management tasks, you should </span><b>BECOME FAMILIAR WITH THOSE
 FIRST</b><span style="font-weight: normal">.</span></p>
 <p style="margin-top: 0.17in; margin-bottom: 0.08in; font-weight: normal; line-height: 100%; page-break-after: avoid">
@@ -92,7 +92,7 @@ installation requirements for this hardware, as that information is
 generally provided by the manufacturers.</span></p>
 <p style="margin-top: 0.17in; margin-bottom: 0.08in; font-weight: normal; line-height: 100%; page-break-after: avoid">
 <font face="Liberation Sans, Arial, sans-serif"><font size="4" style="font-size: 14pt">Prerequisite
-Installation</font></font></p>
+Installation</font> </font><font size=1>modified by Pierre Terrier</font></p>
 <p class="western"><span style="font-weight: normal">There are
 certain prerequisites for the </span><b>Spectro-Radiometer</b><span style="font-weight: normal">
 software that must be satisfied before installing the software.</span></p>
@@ -105,13 +105,13 @@ software that must be satisfied before installing the software.</span></p>
 	</ol>
 </ol>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
-sudo apt-get install build-essential</pre>
+sudo apt install build-essential</pre>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
-sudo apt-get install git</pre>
+sudo apt install git</pre>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
-sudo apt-get install python-pip</pre>
+sudo apt install python3-pip</pre>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
-sudo pip2 install ephem</pre>
+python3 -m  pip install ephem</pre>
 <ol>
 	<ol>
 		<ol start="2">
@@ -120,7 +120,7 @@ sudo pip2 install ephem</pre>
 	</ol>
 </ol>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
-sudo apt-get install gnuradio gnuradio*</pre>
+sudo apt install gr-osmosdr gnuradio gnuradio* </pre>
 <pre class="western" style="margin-left: 0.38in"><br>
 </pre>
 <p style="margin-top: 0.17in; margin-bottom: 0.08in; line-height: 100%; page-break-after: avoid">
@@ -129,23 +129,18 @@ sudo apt-get install gnuradio gnuradio*</pre>
 <p class="western" style="font-weight: normal">In your home
 directory:</p>
 <pre class="western" style="margin-left: 0.38in"><span style="font-weight: normal">git
-clone </span><font color="#000080"><span lang="zxx"><u><a href="https://github.com/ccera-astro/pulsar_filterbank"><span style="font-weight: normal">https://github.com/ccera-astro/Spectro-Radiometer</span></a></u></span></font></pre>
+clone </span><font color="#000080"><span lang="zxx"><u><a href="https://github.com/Radio-Source/Spectro-Radiometer"><span style="font-weight: normal">https://github.com/Radio-Source/Spectro-Radiometer</span></a></u></span></font></pre>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
 cd Spectro-Radiometer</pre>
+<pre class="western" style="font-weight: normal">
+Spectro-Radiometer is a Python3 script run by</pre>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
-make</pre>
+python3 SpectroRadiometer.py (if you use RTL-SDR with default [args])</pre>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
-sudo make install</pre>
-<pre class="western" style="margin-left: 0.38in; font-weight: normal">
-cd $HOME</pre>
+python3 SpectroRadiometer.py [args*] --> see documentation for [args] (if you use another type of SDR  and or using some [args] differents)</pre>
 <pre class="western"><br>
 </pre>
-<p class="western"><span style="font-weight: normal">This will build
-the software, and install its components into /usr/local.  The
-executables are in </span><i><span style="font-weight: normal">/usr/local/bin.</span></i><span style="font-weight: normal">
-You will likely need to add</span><i><span style="font-weight: normal">
-/usr/local/bin</span></i><span style="font-weight: normal"> to your
-PATH variable in your .bashrc if it isn't already there.</span></p>
+<p class="western"> </span></p>
 <ol>
 	<ol>
 		<ol start="3">
@@ -153,8 +148,7 @@ PATH variable in your .bashrc if it isn't already there.</span></p>
 		</ol>
 	</ol>
 </ol>
-<p class="western">The application takes many options and command
-line parameters:</p>
+<p class="western">The application takes many options and command line parameters [args]:</p>
 <pre class="western"> -h, --help            show this help message
 and exit</pre>
 <pre class="western"><br>
@@ -699,7 +693,7 @@ records are produced every 2 seconds.</p>
 </p>
 <div id="sdfootnote1">
 	<p class="sdfootnote-western"><a class="sdfootnotesym" name="sdfootnote1sym" href="#sdfootnote1anc">1</a>See:
-	https://github.com/ccera-astro/Spectro-Radiometer</p>
+	https://github.com/Radio-Source/Spectro-Radiometer</p>
 </div>
 </body>
 </html>
