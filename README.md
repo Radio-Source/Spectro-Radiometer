@@ -8,7 +8,7 @@ It requires Gnu Radio, gr-osmosdr, and you'll need to install the
 ## Installation and usage
 #### Original Author: Marcus Leech, Canadian Centre for Experimental Radio Astronomy 
 https://github.com/ccera-astro/spectro_radiometer
-#### MODIFIED Translated on Python3 and Gnuradio 3.10 Author: Pierre Terrier 
+#### MODIFIED Translated on Python3 and Gnuradio 3.10 & Author of this repository : Pierre Terrier 
 https://github.com/Radio-Source/Spectro-Radiometer
 
 ### Introduction
