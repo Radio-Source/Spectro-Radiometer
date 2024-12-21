@@ -59,6 +59,7 @@ sudo apt install gnuradio gnuradio*
 In your home directory in terminal:
 
 git clone https://github.com/Radio-Source/Spectro-Radiometer
+
 cd Spectro-Radiometer
 
 #### Invoking Spectro-Radiometer
