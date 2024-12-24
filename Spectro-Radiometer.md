@@ -72,16 +72,16 @@ Application: *spectro\_radiometer*
 In your home directory:
 
 ``` {.western style="margin-left: 0.38in"}
-git clone https://github.com/Radio-Source/Spectro-Radiometer
+git clone https://github.com/Radio-Source/SpectroRadiometer
 ```
 
 ``` {.western style="margin-left: 0.38in; font-weight: normal"}
-cd Spectro-Radiometer
+cd SpectroRadiometer
 ```
 
 1.  ### Invoking spectro\_radiometer
 ``` {.western style="margin-left: 0.38in; font-weight: normal"}
-Spectro-Radiometer is a Python3 script run by
+SpectroRadiometer is a Python3 script run by
 ```
 ``` {.western style="margin-left: 0.38in; font-weight: normal"}
 python3 SpectroRadiometer.py (if you use RTL-SDR with default [args])

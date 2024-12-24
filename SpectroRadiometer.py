@@ -5,8 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0
 #
 # GNU Radio Python Flow Graph
-# Title: Spectro Radiometer
-# Author: smrt
+# Title: Spectral and Radiometry Receiver
 # GNU Radio version: 3.10.9.2
 
 from PyQt5 import Qt
@@ -37,10 +36,10 @@ import threading
 
 class SpectroRadiometer(gr.top_block, Qt.QWidget):
 
-    def __init__(self, abw=4.0e6, antenna='RX2', baseline=20, bbgain=5, clock='default', dcg=100, decfile="", decln=0, device="rtl=0 file=/dev/zero,rate=2.50e6", dfreq=0.0, fbsize=128, fftsize=2048, frequency=1420.4058e6, gain=30, ifgain=5, integration=0.5, latitude=44.9, longitude=(-76.03), mode="total", ppstime='internal', prefix="h1", psrmode=0, ra=12.0, rfilist="", spec_interval=15, srate=2.50e6, tp_interval=2, zerofile="", zerotime=99.3):
-        gr.top_block.__init__(self, "Spectro Radiometer", catch_exceptions=True)
+    def __init__(self, abw=4.0e6, antenna='RX2', baseline=20, bbgain=5, clock='default', dcg=100, decfile="", decln=0, device="rtl=0 file=/dev/zero,rate=5e6", dfreq=0.0, fbsize=128, fftsize=2048, frequency=1420.4058e6, gain=30, ifgain=5, integration=0.5, latitude=44.9, longitude=(-76.03), mode="total", ppstime='internal', prefix="h1", psrmode=0, ra=12.0, rfilist="", spec_interval=15, srate=2.56e6, tp_interval=2, zerofile="", zerotime=99.3):
+        gr.top_block.__init__(self, "Spectral and Radiometry Receiver", catch_exceptions=True)
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("Spectro Radiometer")
+        self.setWindowTitle("Spectral and Radiometry Receiver")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -118,6 +117,7 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.gmdate = gmdate = "%04d%02d%02d" % (ltp.tm_year, ltp.tm_mon, ltp.tm_mday)
         self.ebw = ebw = (samp_rate*0.8)/1.0e6
         self.win = win = fft.window.blackmanharris(fftsize)
+        self.time_pacer = time_pacer = [-100.0]*fftsize
         self.set_baseline = set_baseline = 0
         self.pparamstr = pparamstr = "%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (psrate/1e3, pchanwidth/1e3, ifreq/1.0e6,samp_rate/1.0e6,ebw,fbsize)
         self.pparam = pparam = prefix+"-"+gmdate+"-psr.params" if psrmode != 0 else "/dev/null"
@@ -139,11 +139,10 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.wrstatus = wrstatus = open(pparam, "w").write(pparamstr)
         self.winsum = winsum = sum(map(lambda x:x*x, win))
         self.wchan = wchan = 0
-        self.variable_qtgui_label_0 = variable_qtgui_label_0 = 'spectro_helper.lmst_string(time_pacer,longitude)'
-        self.time_pacer = time_pacer = [-100.0]*fftsize
+        self.variable_qtgui_label_0 = variable_qtgui_label_0 = helper.lmst_string(time_pacer,longitude)
         self.start_km = start_km = helper.doppler_start(ifreq,dfreq,samp_rate)
         self.spec_labels = spec_labels = helper.get_spec_labels(mode)
-        self.secondary_lmst_label = secondary_lmst_label = 'spectro_helper.lmst_string(time_pacer,longitude)'
+        self.secondary_lmst_label = secondary_lmst_label = helper.lmst_string(time_pacer,longitude)
         self.save_filter = save_filter = open("poopy.dat", "w").write(str(list(custom_window)))
         self.psrfilename = psrfilename = prefix+"-"+gmdate+"-psr.rfb8" if psrmode != 0 else "/dev/null"
         self.mode_map = mode_map = {"total" : "Continuum Power", "tp" : "Continuum Power", "diff" : "Differential/Added Power", "differential" : "Differential/Added Power", "correlator" : "Cross  Power", "interferometer": "Cross Power", "corr" : "Cross Power"}
@@ -653,6 +652,7 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
             self.main_tab_grid_layout_0.setRowStretch(r, 1)
         for c in range(1, 2):
             self.main_tab_grid_layout_0.setColumnStretch(c, 1)
+        self.blocks_throttle_0 = blocks.throttle(gr.sizeof_float*3600, 40,True)
         self.blocks_sub_xx_0 = blocks.sub_cc(1)
         self.blocks_stream_to_vector_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, fftsize)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, fftsize)
@@ -758,13 +758,14 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_nlog10_ff_0, 0), (self.blocks_multiply_const_vxx_1, 0))
         self.connect((self.blocks_nlog10_ff_0, 0), (self.fft_probe, 0))
         self.connect((self.blocks_nlog10_ff_0_0, 0), (self.fft2_probe, 0))
-        self.connect((self.blocks_null_source_0, 0), (self.blocks_add_const_vxx_0_0, 0))
-        self.connect((self.blocks_null_source_0, 0), (self.blocks_add_const_vxx_0_0_0, 0))
+        self.connect((self.blocks_null_source_0, 0), (self.blocks_throttle_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.blocks_delay_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.blocks_multiply_const_vxx_4_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0, 0), (self.blocks_delay_0_1, 0))
         self.connect((self.blocks_stream_to_vector_0_0, 0), (self.blocks_multiply_const_vxx_4_0_0, 0))
         self.connect((self.blocks_sub_xx_0, 0), (self.corr_probe, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.blocks_add_const_vxx_0_0, 0))
+        self.connect((self.blocks_throttle_0, 0), (self.blocks_add_const_vxx_0_0_0, 0))
         self.connect((self.fft_vxx_0, 0), (self.blocks_complex_to_mag_squared_0, 0))
         self.connect((self.fft_vxx_0_0, 0), (self.blocks_complex_to_mag_squared_0_0, 0))
         self.connect((self.osmosdr_source_0, 0), (self.blocks_keep_m_in_n_0, 0))
@@ -940,6 +941,8 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.longitude = longitude
         self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
         self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
+        self.set_secondary_lmst_label(helper.lmst_string(self.time_pacer,self.longitude))
+        self.set_variable_qtgui_label_0(helper.lmst_string(self.time_pacer,self.longitude))
 
     def get_mode(self):
         return self.mode
@@ -1167,6 +1170,14 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.win = win
         self.set_winsum(sum(map(lambda x:x*x, self.win)))
 
+    def get_time_pacer(self):
+        return self.time_pacer
+
+    def set_time_pacer(self, time_pacer):
+        self.time_pacer = time_pacer
+        self.set_secondary_lmst_label(helper.lmst_string(self.time_pacer,self.longitude))
+        self.set_variable_qtgui_label_0(helper.lmst_string(self.time_pacer,self.longitude))
+
     def get_set_baseline(self):
         return self.set_baseline
 
@@ -1339,12 +1350,6 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
     def set_variable_qtgui_label_0(self, variable_qtgui_label_0):
         self.variable_qtgui_label_0 = variable_qtgui_label_0
         Qt.QMetaObject.invokeMethod(self._variable_qtgui_label_0_label, "setText", Qt.Q_ARG("QString", str(self._variable_qtgui_label_0_formatter(self.variable_qtgui_label_0))))
-
-    def get_time_pacer(self):
-        return self.time_pacer
-
-    def set_time_pacer(self, time_pacer):
-        self.time_pacer = time_pacer
 
     def get_start_km(self):
         return self.start_km
@@ -1522,9 +1527,6 @@ def argument_parser():
         "--decln", dest="decln", type=eng_float, default=eng_notation.num_to_str(float(0)),
         help="Set Observing Declination [default=%(default)r]")
     parser.add_argument(
-        "--device", dest="device", type=str, default="rtl=0 file=/dev/zero,rate=2.50e6",
-        help="Set SDR Device Name [default=%(default)r]")
-    parser.add_argument(
         "--dfreq", dest="dfreq", type=eng_float, default=eng_notation.num_to_str(float(0.0)),
         help="Set Alternet Doppler Cente Frequency [default=%(default)r]")
     parser.add_argument(
@@ -1564,7 +1566,7 @@ def argument_parser():
         "--spec-interval", dest="spec_interval", type=intx, default=15,
         help="Set Spectral Logging Interval [default=%(default)r]")
     parser.add_argument(
-        "--srate", dest="srate", type=eng_float, default=eng_notation.num_to_str(float(2.50e6)),
+        "--srate", dest="srate", type=eng_float, default=eng_notation.num_to_str(float(2.56e6)),
         help="Set Sample rate [default=%(default)r]")
     parser.add_argument(
         "--tp-interval", dest="tp_interval", type=intx, default=2,
@@ -1581,7 +1583,7 @@ def main(top_block_cls=SpectroRadiometer, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(abw=options.abw, antenna=options.antenna, baseline=options.baseline, bbgain=options.bbgain, clock=options.clock, dcg=options.dcg, decln=options.decln, device=options.device, dfreq=options.dfreq, fbsize=options.fbsize, fftsize=options.fftsize, frequency=options.frequency, gain=options.gain, ifgain=options.ifgain, integration=options.integration, latitude=options.latitude, longitude=options.longitude, ppstime=options.ppstime, psrmode=options.psrmode, ra=options.ra, spec_interval=options.spec_interval, srate=options.srate, tp_interval=options.tp_interval, zerotime=options.zerotime)
+    tb = top_block_cls(abw=options.abw, antenna=options.antenna, baseline=options.baseline, bbgain=options.bbgain, clock=options.clock, dcg=options.dcg, decln=options.decln, dfreq=options.dfreq, fbsize=options.fbsize, fftsize=options.fftsize, frequency=options.frequency, gain=options.gain, ifgain=options.ifgain, integration=options.integration, latitude=options.latitude, longitude=options.longitude, ppstime=options.ppstime, psrmode=options.psrmode, ra=options.ra, spec_interval=options.spec_interval, srate=options.srate, tp_interval=options.tp_interval, zerotime=options.zerotime)
 
     tb.start()
 

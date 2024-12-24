@@ -1,4 +1,4 @@
-# Spectro-Radiometer
+# SpectroRadiometer
 A very simple radio astronomy application that provides spectral and continuum modes, including total-power, correlation, an differential.
 
 It requires Gnu Radio, gr-osmosdr, and you'll need to install the
@@ -10,10 +10,10 @@ It requires Gnu Radio, gr-osmosdr, and you'll need to install the
 https://github.com/ccera-astro/spectro_radiometer
 
 #### MODIFIED Translated on Python3 and Gnuradio 3.10 & Author of this repository : Pierre Terrier 
-https://github.com/Radio-Source/Spectro-Radiometer
+https://github.com/Radio-Source/SpectroRadiometer
 
 ### Introduction
-This document describes the installation, system requirements, and usage of the Gnu Radio application known as **[Spectro-Radiometer](https://github.com/Radio-Source/Spectro-Radiometer)**.
+This document describes the installation, system requirements, and usage of the Gnu Radio application known as **[SpectroRadiometer](https://github.com/Radio-Source/SpectroRadiometer)**.
 
 ### System Requirements
 This document assumes that you have already installed *Ubuntu 24.04 LTS* onto your system. The instructions given here would need to be modified for other *Linux* distributions, and *Ubuntu* is one of the more popular distributions.
@@ -37,7 +37,7 @@ This document will **NOT** cover installation requirements for this hardware, as
 
 ### Prerequisite Installation 
 modified by Pierre Terrier
-There are certain prerequisites for the **Spectro-Radiometer** software that must be satisfied before installing the software.
+There are certain prerequisites for the **SpectroRadiometer** software that must be satisfied before installing the software.
 
 #### Development Tools
 
@@ -58,16 +58,16 @@ sudo apt install gr-osmosdr
 sudo apt install gnuradio gnuradio*
 
 
-### Install Application: Spectro-Radiometer
+### Install Application: SpectroRadiometer
 
 In your home directory in terminal:
 
-git clone https://github.com/Radio-Source/Spectro-Radiometer
+git clone https://github.com/Radio-Source/SpectroRadiometer
 
-cd Spectro-Radiometer
+cd SpectroRadiometer
 
-#### Invoking Spectro-Radiometer
-Spectro-Radiometer is a Python3 script run by
+#### Invoking SpectroRadiometer
+SpectroRadiometer is a Python3 script run by
 
 python3 SpectroRadiometer.py (if you use RTL-SDR by default)
 
@@ -153,11 +153,11 @@ The `--dfreq` parameter specifies an alternate doppler-center frequency against 
   display purposes.
 
 ### Device options
-The *Spectro-Radiometer* application uses the *gr-osmosdr* abstraction within GNU Radio to provide support for many different types of SDR hardware.
+The *SpectroRadiometer* application uses the *gr-osmosdr* abstraction within GNU Radio to provide support for many different types of SDR hardware.
 
 The **general** form is:
 ```--device "hwstring1 hwstring2"```
-Now, since *Spectro-Radiometer* supports **two** channels, in many cases, with only a single receiver, the 2nd *hwstring* above should be `file=/dev/zero,rate=20e6`.
+Now, since *SpectroRadiometer* supports **two** channels, in many cases, with only a single receiver, the 2nd *hwstring* above should be `file=/dev/zero,rate=20e6`.
 
 #### Single RTL-SDR
 For a single RTL-SDR device, the –device option looks like:
@@ -214,7 +214,7 @@ You will also have to specify the appropriate antenna port, using the –antenna
 The *LimeSDR* is reasonably sample-rate agile, very much like the USRP B210 in this regard.
 
 #### Other Hardware
-Other hardware that is supported by gr-osmosdr will probably also work, but hasn't been tested explicitly with *Spectro-Radiometer*.
+Other hardware that is supported by gr-osmosdr will probably also work, but hasn't been tested explicitly with *SpectroRadiometer*.
 
 ### User Interface
 The application provides a *GUI*, based on the standard *Qt* widgets provided by *GNU Radio*.

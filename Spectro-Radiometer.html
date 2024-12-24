@@ -36,7 +36,7 @@
 <body lang="en-US" text="#000000" bgcolor="#ffffff" dir="ltr" style="background: #ffffff">
 <p align="center" style="margin-top: 0.17in; margin-bottom: 0.08in; line-height: 100%; page-break-after: avoid">
 <font face="Liberation Sans, Arial, sans-serif"><font size="6" style="font-size: 28pt"><b>Installation
-and usage: Spectro-Radiometer</b></font></font></p>
+and usage: SpectroRadiometer</b></font></font></p>
 <p class="western" align="center">Marcus Leech</p>
 <p class="western" align="center"><i>Canadian Centre for Experimental
 Radio Astronomy</i></p>
@@ -44,7 +44,7 @@ Radio Astronomy</i></p>
 <font face="Liberation Sans, Arial, sans-serif"><font size="4" style="font-size: 14pt">Introduction</font></font></p>
 <p class="western">This document describes the installation, system
 requirements, and usage of the <i>Gnu Radio</i> application known as
-<b>Spectro-Radiometer</b><sup><span style="font-weight: normal"><a class="sdfootnoteanc" name="sdfootnote1anc" href="#sdfootnote1sym"><sup>1</sup></a></span></sup><span style="font-weight: normal">.</span></p>
+<b>SpectroRadiometer</b><sup><span style="font-weight: normal"><a class="sdfootnoteanc" name="sdfootnote1anc" href="#sdfootnote1sym"><sup>1</sup></a></span></sup><span style="font-weight: normal">.</span></p>
 <p style="margin-top: 0.17in; margin-bottom: 0.08in; font-weight: normal; line-height: 100%; page-break-after: avoid">
 <font face="Liberation Sans, Arial, sans-serif"><font size="4" style="font-size: 14pt">System
 Requirements</font></font></p>
@@ -94,7 +94,7 @@ generally provided by the manufacturers.</span></p>
 <font face="Liberation Sans, Arial, sans-serif"><font size="4" style="font-size: 14pt">Prerequisite
 Installation</font> </font><font size=1>modified by Pierre Terrier</font></p>
 <p class="western"><span style="font-weight: normal">There are
-certain prerequisites for the </span><b>Spectro-Radiometer</b><span style="font-weight: normal">
+certain prerequisites for the </span><b>SpectroRadiometer</b><span style="font-weight: normal">
 software that must be satisfied before installing the software.</span></p>
 <ol>
 	<ol>
@@ -125,15 +125,15 @@ sudo apt install gr-osmosdr gnuradio gnuradio* </pre>
 </pre>
 <p style="margin-top: 0.17in; margin-bottom: 0.08in; line-height: 100%; page-break-after: avoid">
 <font face="Liberation Sans, Arial, sans-serif"><font size="4" style="font-size: 14pt"><span style="font-weight: normal">Application:
-</span><i><span style="font-weight: normal">Spectro-Radiometer</span></i></font></font></p>
+</span><i><span style="font-weight: normal">SpectroRadiometer</span></i></font></font></p>
 <p class="western" style="font-weight: normal">In your home
 directory:</p>
 <pre class="western" style="margin-left: 0.38in"><span style="font-weight: normal">git
-clone </span><font color="#000080"><span lang="zxx"><u><a href="https://github.com/Radio-Source/Spectro-Radiometer"><span style="font-weight: normal">https://github.com/Radio-Source/Spectro-Radiometer</span></a></u></span></font></pre>
+clone </span><font color="#000080"><span lang="zxx"><u><a href="https://github.com/Radio-Source/SpectroRadiometer"><span style="font-weight: normal">https://github.com/Radio-Source/SpectroRadiometer</span></a></u></span></font></pre>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
-cd Spectro-Radiometer</pre>
+cd SpectroRadiometer</pre>
 <pre class="western" style="font-weight: normal">
-Spectro-Radiometer is a Python3 script run by</pre>
+SpectroRadiometer is a Python3 script run by</pre>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
 python3 SpectroRadiometer.py (if you use RTL-SDR with default [args])</pre>
 <pre class="western" style="margin-left: 0.38in; font-weight: normal">
@@ -144,7 +144,7 @@ python3 SpectroRadiometer.py [args*] --> see documentation for [args] (if you us
 <ol>
 	<ol>
 		<ol start="3">
-			<li><h3 class="western">Invoking Spectro-Radiometer</h3>
+			<li><h3 class="western">Invoking SpectroRadiometer</h3>
 		</ol>
 	</ol>
 </ol>
@@ -351,7 +351,7 @@ this option.</span></span></p>
 	<li><h1 class="western" style="font-weight: normal">Device options</h1>
 </ol>
 <p class="western"><span style="font-weight: normal">The
-</span><i><span style="font-weight: normal">Spectro-Radiometer
+</span><i><span style="font-weight: normal">SpectroRadiometer
 </span></i><span style="font-weight: normal">application uses the
 </span><i><span style="font-weight: normal">gr-osmosdr </span></i><span style="font-style: normal"><span style="font-weight: normal">abstraction
 within Gnu Radio to provide support for many different types of SDR
@@ -367,7 +367,7 @@ form is:</span></span></p>
 <br>
 </pre>
 <p class="western"><span style="font-style: normal"><span style="font-weight: normal">Now,
-since </span></span><i><span style="font-weight: normal">Spectro-Radiometer</span></i><span style="font-style: normal"><span style="font-weight: normal">
+since </span></span><i><span style="font-weight: normal">SpectroRadiometer</span></i><span style="font-style: normal"><span style="font-weight: normal">
 supports </span></span><span style="font-style: normal"><b>two</b></span><span style="font-style: normal"><span style="font-weight: normal">
 channels, in many cases, with only a single receiver, the 2</span></span><sup><span style="font-style: normal"><span style="font-weight: normal">nd</span></span></sup><span style="font-style: normal"><span style="font-weight: normal">
 </span></span><i><span style="font-weight: normal">hwstring</span></i><span style="font-style: normal"><span style="font-weight: normal">,
@@ -512,7 +512,7 @@ Hardware</font></font></p>
 <p class="western"><span style="font-style: normal">Other hardware
 that is supported by </span><i>gr-osmosdr</i><span style="font-style: normal">
 will probably also work, but hasn't been tested explicitly with
-</span><i>Spectro-Radiometer.</i></p>
+</span><i>SpectroRadiometer.</i></p>
 <ol>
 	<ol>
 		<ol>
@@ -693,7 +693,7 @@ records are produced every 2 seconds.</p>
 </p>
 <div id="sdfootnote1">
 	<p class="sdfootnote-western"><a class="sdfootnotesym" name="sdfootnote1sym" href="#sdfootnote1anc">1</a>See:
-	https://github.com/Radio-Source/Spectro-Radiometer</p>
+	https://github.com/Radio-Source/SpectroRadiometer</p>
 </div>
 </body>
 </html>

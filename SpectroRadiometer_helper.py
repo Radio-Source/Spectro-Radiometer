@@ -13,7 +13,6 @@ def getalpha(corner, srate):
 	return alpha
 
 
-
 zeromap = {}
 
 lastt = time.time()
