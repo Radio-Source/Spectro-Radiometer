@@ -1555,13 +1555,15 @@ blocks:
     coordinate: [1624, 888]
     rotation: 0
     state: enabled
-- name: blocks_throttle_0
-  id: blocks_throttle
+- name: blocks_throttle2_0
+  id: blocks_throttle2
   parameters:
     affinity: ''
     alias: ''
     comment: ''
     ignoretag: 'True'
+    limit: auto
+    maximum: '0.1'
     maxoutbuf: '0'
     minoutbuf: '0'
     samples_per_second: '40'
@@ -1571,7 +1573,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [656, 916]
+    coordinate: [656, 896.0]
     rotation: 0
     state: enabled
 - name: clock
@@ -3626,12 +3628,12 @@ connections:
 - [blocks_nlog10_ff_0, '0', fft_probe, '0']
 - [blocks_nlog10_ff_0, '0', virtual_sink_0, '0']
 - [blocks_nlog10_ff_0_0, '0', fft2_probe, '0']
-- [blocks_null_source_0, '0', blocks_throttle_0, '0']
+- [blocks_null_source_0, '0', blocks_throttle2_0, '0']
 - [blocks_stream_to_vector_0, '0', virtual_sink_3, '0']
 - [blocks_stream_to_vector_0_0, '0', cronk, '0']
 - [blocks_sub_xx_0, '0', corr_probe, '0']
-- [blocks_throttle_0, '0', blocks_add_const_vxx_0_0, '0']
-- [blocks_throttle_0, '0', blocks_add_const_vxx_0_0_0, '0']
+- [blocks_throttle2_0, '0', blocks_add_const_vxx_0_0, '0']
+- [blocks_throttle2_0, '0', blocks_add_const_vxx_0_0_0, '0']
 - [fft_vxx_0, '0', blocks_complex_to_mag_squared_0, '0']
 - [fft_vxx_0_0, '0', blocks_complex_to_mag_squared_0_0, '0']
 - [osmosdr_source_0, '0', virtual_sink_2, '0']
