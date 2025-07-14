@@ -874,18 +874,6 @@ blocks:
     coordinate: [1168, 1660]
     rotation: 0
     state: enabled
-- name: wrstatus
-  id: variable
-  parameters:
-    comment: ''
-    value: open(pparam, "w").write(pparamstr)
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1504, 1796]
-    rotation: 0
-    state: enabled
 - name: abw
   id: parameter
   parameters:
@@ -1680,12 +1668,29 @@ blocks:
     label: SDR Device Name
     short_id: ''
     type: ''
-    value: '"rtl=0 file=/dev/zero,rate=5e6"'
+    value: '"airspy=0,bias=1,pack=0"'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
     coordinate: [1008, 2068]
+    rotation: 0
+    state: enabled
+- name: device_0
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: SDR Device Name
+    short_id: ''
+    type: ''
+    value: '"rtl=0 file=/dev/zero,rate=5e6"'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [784, 2076.0]
     rotation: 0
     state: enabled
 - name: dfreq

@@ -36,7 +36,7 @@ import threading
 
 class SpectroRadiometer(gr.top_block, Qt.QWidget):
 
-    def __init__(self, abw=4.0e6, antenna='RX2', baseline=20, bbgain=5, clock='default', dcg=100, decfile="", decln=0, device="rtl=0 file=/dev/zero,rate=5e6", dfreq=0.0, fbsize=128, fftsize=2048, frequency=1420.4058e6, gain=30, ifgain=5, integration=0.5, latitude=44.9, longitude=(-76.03), mode="total", ppstime='internal', prefix="h1", psrmode=0, ra=12.0, rfilist="", spec_interval=15, srate=2.56e6, tp_interval=2, zerofile="", zerotime=99.3):
+    def __init__(self, abw=4.0e6, antenna='RX2', baseline=20, bbgain=5, clock='default', dcg=100, decfile="", decln=0, device="airspy=0,bias=1,pack=0", device_0="rtl=0 file=/dev/zero,rate=5e6", dfreq=0.0, fbsize=128, fftsize=2048, frequency=1420.4058e6, gain=30, ifgain=5, integration=0.5, latitude=44.9, longitude=(-76.03), mode="total", ppstime='internal', prefix="h1", psrmode=0, ra=12.0, rfilist="", spec_interval=15, srate=2.56e6, tp_interval=2, zerofile="", zerotime=99.3):
         gr.top_block.__init__(self, "Spectral and Radiometry Receiver", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Spectral and Radiometry Receiver")
@@ -78,6 +78,7 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.decfile = decfile
         self.decln = decln
         self.device = device
+        self.device_0 = device_0
         self.dfreq = dfreq
         self.fbsize = fbsize
         self.fftsize = fftsize
@@ -105,23 +106,20 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.nphase = nphase = 2
         self.nchan = nchan = fftsize
         self.sinc_sample_locations = sinc_sample_locations = np.arange(-np.pi*4/2.0, np.pi*4/2.0, (np.pi/nchan)*(4/nphase))
-        self.samp_rate = samp_rate = int(srate)
-        self.ltp = ltp = time.gmtime(time.time())
         self.ifreq = ifreq = frequency
         self.wlam = wlam = 299792000.0/ifreq
         self.ui_decln = ui_decln = decln
         self.tp_pacer = tp_pacer = [-100.0]*fftsize
         self.sinc = sinc = np.sinc(sinc_sample_locations/np.pi)
-        self.psrate = psrate = samp_rate/fftsize
-        self.pchanwidth = pchanwidth = samp_rate/fbsize
-        self.gmdate = gmdate = "%04d%02d%02d" % (ltp.tm_year, ltp.tm_mon, ltp.tm_mday)
-        self.ebw = ebw = (samp_rate*0.8)/1.0e6
+        self.samp_rate = samp_rate = int(srate)
+        self.ltp = ltp = time.gmtime(time.time())
         self.win = win = fft.window.blackmanharris(fftsize)
         self.time_pacer = time_pacer = [-100.0]*fftsize
         self.set_baseline = set_baseline = 0
-        self.pparamstr = pparamstr = "%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (psrate/1e3, pchanwidth/1e3, ifreq/1.0e6,samp_rate/1.0e6,ebw,fbsize)
-        self.pparam = pparam = prefix+"-"+gmdate+"-psr.params" if psrmode != 0 else "/dev/null"
+        self.psrate = psrate = samp_rate/fftsize
+        self.pchanwidth = pchanwidth = samp_rate/fbsize
         self.ira = ira = ra
+        self.gmdate = gmdate = "%04d%02d%02d" % (ltp.tm_year, ltp.tm_mon, ltp.tm_mday)
         self.fstop = fstop = False
         self.frate = frate = (baseline/wlam)*7.3e-5*math.cos(math.radians(ui_decln))
         self.fft_probed = fft_probed = [-100.0]*fftsize
@@ -129,6 +127,7 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.fft_avg = fft_avg = integration
         self.fft2_probed = fft2_probed = [-100.0]*fftsize
         self.enable_normalize = enable_normalize = 0
+        self.ebw = ebw = (samp_rate*0.8)/1.0e6
         self.declination = declination = helper.get_decln(ui_decln,decfile,tp_pacer)
         self.dcgain = dcgain = dcg
         self.custom_window = custom_window = sinc*np.hamming(nphase*nchan)
@@ -136,7 +135,6 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.clear_baseline = clear_baseline = 0
         self.annotation = annotation = ""
         self.ang = ang = 0
-        self.wrstatus = wrstatus = open(pparam, "w").write(pparamstr)
         self.winsum = winsum = sum(map(lambda x:x*x, win))
         self.wchan = wchan = 0
         self.variable_qtgui_label_0 = variable_qtgui_label_0 = helper.lmst_string(time_pacer,longitude)
@@ -145,6 +143,8 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.secondary_lmst_label = secondary_lmst_label = helper.lmst_string(time_pacer,longitude)
         self.save_filter = save_filter = open("poopy.dat", "w").write(str(list(custom_window)))
         self.psrfilename = psrfilename = prefix+"-"+gmdate+"-psr.rfb8" if psrmode != 0 else "/dev/null"
+        self.pparamstr = pparamstr = "%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (psrate/1e3, pchanwidth/1e3, ifreq/1.0e6,samp_rate/1.0e6,ebw,fbsize)
+        self.pparam = pparam = prefix+"-"+gmdate+"-psr.params" if psrmode != 0 else "/dev/null"
         self.mode_map = mode_map = {"total" : "Continuum Power", "tp" : "Continuum Power", "diff" : "Differential/Added Power", "differential" : "Differential/Added Power", "correlator" : "Cross  Power", "interferometer": "Cross Power", "corr" : "Cross Power"}
         self.km_incr = km_incr = (((samp_rate/fftsize)/ifreq)*299792)*-1.0
         self.igain = igain = gain
@@ -858,6 +858,12 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
     def set_device(self, device):
         self.device = device
 
+    def get_device_0(self):
+        return self.device_0
+
+    def set_device_0(self, device_0):
+        self.device_0 = device_0
+
     def get_dfreq(self):
         return self.dfreq
 
@@ -1053,34 +1059,6 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.sinc_sample_locations = sinc_sample_locations
         self.set_sinc(np.sinc(self.sinc_sample_locations/np.pi))
 
-    def get_samp_rate(self):
-        return self.samp_rate
-
-    def set_samp_rate(self, samp_rate):
-        self.samp_rate = samp_rate
-        self.set_ebw((self.samp_rate*0.8)/1.0e6)
-        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
-        self.set_fftrate(float(self.samp_rate/self.fftsize))
-        self.set_fincr((self.samp_rate/1.0e6)/self.fftsize)
-        self.set_km_incr((((self.samp_rate/self.fftsize)/self.ifreq)*299792)*-1.0)
-        self.set_pchanwidth(self.samp_rate/self.fbsize)
-        self.set_pparamstr("%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (self.psrate/1e3, self.pchanwidth/1e3, self.ifreq/1.0e6,self.samp_rate/1.0e6,self.ebw,self.fbsize))
-        self.set_psrate(self.samp_rate/self.fftsize)
-        self.set_start_km(helper.doppler_start(self.ifreq,self.dfreq,self.samp_rate))
-        self.blocks_keep_one_in_n_0.set_n((int((self.samp_rate/self.fftsize)/50)))
-        self.blocks_keep_one_in_n_0_0.set_n((int((self.samp_rate/self.fftsize)/50)))
-        self.blocks_keep_one_in_n_1.set_n((int(self.samp_rate/self.fft_hz)))
-        self.osmosdr_source_0.set_sample_rate(self.samp_rate)
-        self.qtgui_vector_sink_f_0_1.set_x_axis(((self.ifreq-self.samp_rate/2)/1.0e6), self.fincr)
-        self.qtgui_waterfall_sink_x_0.set_frequency_range(self.ifreq, self.samp_rate)
-        self.single_pole_iir_filter_xx_1.set_taps((helper.getalpha(self.fft_hz/2.0,self.samp_rate)))
-
-    def get_ltp(self):
-        return self.ltp
-
-    def set_ltp(self, ltp):
-        self.ltp = ltp
-
     def get_ifreq(self):
         return self.ifreq
 
@@ -1134,34 +1112,33 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.set_custom_window(self.sinc*np.hamming(self.nphase*self.nchan))
         self.set_sinc(np.sinc(self.sinc_sample_locations/np.pi))
 
-    def get_psrate(self):
-        return self.psrate
+    def get_samp_rate(self):
+        return self.samp_rate
 
-    def set_psrate(self, psrate):
-        self.psrate = psrate
+    def set_samp_rate(self, samp_rate):
+        self.samp_rate = samp_rate
+        self.set_ebw((self.samp_rate*0.8)/1.0e6)
+        self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
+        self.set_fftrate(float(self.samp_rate/self.fftsize))
+        self.set_fincr((self.samp_rate/1.0e6)/self.fftsize)
+        self.set_km_incr((((self.samp_rate/self.fftsize)/self.ifreq)*299792)*-1.0)
+        self.set_pchanwidth(self.samp_rate/self.fbsize)
         self.set_pparamstr("%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (self.psrate/1e3, self.pchanwidth/1e3, self.ifreq/1.0e6,self.samp_rate/1.0e6,self.ebw,self.fbsize))
+        self.set_psrate(self.samp_rate/self.fftsize)
+        self.set_start_km(helper.doppler_start(self.ifreq,self.dfreq,self.samp_rate))
+        self.blocks_keep_one_in_n_0.set_n((int((self.samp_rate/self.fftsize)/50)))
+        self.blocks_keep_one_in_n_0_0.set_n((int((self.samp_rate/self.fftsize)/50)))
+        self.blocks_keep_one_in_n_1.set_n((int(self.samp_rate/self.fft_hz)))
+        self.osmosdr_source_0.set_sample_rate(self.samp_rate)
+        self.qtgui_vector_sink_f_0_1.set_x_axis(((self.ifreq-self.samp_rate/2)/1.0e6), self.fincr)
+        self.qtgui_waterfall_sink_x_0.set_frequency_range(self.ifreq, self.samp_rate)
+        self.single_pole_iir_filter_xx_1.set_taps((helper.getalpha(self.fft_hz/2.0,self.samp_rate)))
 
-    def get_pchanwidth(self):
-        return self.pchanwidth
+    def get_ltp(self):
+        return self.ltp
 
-    def set_pchanwidth(self, pchanwidth):
-        self.pchanwidth = pchanwidth
-        self.set_pparamstr("%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (self.psrate/1e3, self.pchanwidth/1e3, self.ifreq/1.0e6,self.samp_rate/1.0e6,self.ebw,self.fbsize))
-
-    def get_gmdate(self):
-        return self.gmdate
-
-    def set_gmdate(self, gmdate):
-        self.gmdate = gmdate
-        self.set_pparam(self.prefix+"-"+self.gmdate+"-psr.params" if self.psrmode != 0 else "/dev/null")
-        self.set_psrfilename(self.prefix+"-"+self.gmdate+"-psr.rfb8" if self.psrmode != 0 else "/dev/null")
-
-    def get_ebw(self):
-        return self.ebw
-
-    def set_ebw(self, ebw):
-        self.ebw = ebw
-        self.set_pparamstr("%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (self.psrate/1e3, self.pchanwidth/1e3, self.ifreq/1.0e6,self.samp_rate/1.0e6,self.ebw,self.fbsize))
+    def set_ltp(self, ltp):
+        self.ltp = ltp
 
     def get_win(self):
         return self.win
@@ -1185,19 +1162,19 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.set_baseline = set_baseline
         self.set_baseline_set_status(helper.baseline_setter(self.set_baseline))
 
-    def get_pparamstr(self):
-        return self.pparamstr
+    def get_psrate(self):
+        return self.psrate
 
-    def set_pparamstr(self, pparamstr):
-        self.pparamstr = pparamstr
-        self.set_wrstatus(open(self.pparam, "w").write(self.pparamstr))
+    def set_psrate(self, psrate):
+        self.psrate = psrate
+        self.set_pparamstr("%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (self.psrate/1e3, self.pchanwidth/1e3, self.ifreq/1.0e6,self.samp_rate/1.0e6,self.ebw,self.fbsize))
 
-    def get_pparam(self):
-        return self.pparam
+    def get_pchanwidth(self):
+        return self.pchanwidth
 
-    def set_pparam(self, pparam):
-        self.pparam = pparam
-        self.set_wrstatus(open(self.pparam, "w").write(self.pparamstr))
+    def set_pchanwidth(self, pchanwidth):
+        self.pchanwidth = pchanwidth
+        self.set_pparamstr("%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (self.psrate/1e3, self.pchanwidth/1e3, self.ifreq/1.0e6,self.samp_rate/1.0e6,self.ebw,self.fbsize))
 
     def get_ira(self):
         return self.ira
@@ -1206,6 +1183,14 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.ira = ira
         self.set_anno_status(helper.do_annotation(self.ira,self.declination,self.baseline,self.annotation,self.srate*0.8,self.abw,self.ifreq,self.srate,self.prefix))
         Qt.QMetaObject.invokeMethod(self._ira_line_edit, "setText", Qt.Q_ARG("QString", eng_notation.num_to_str(self.ira)))
+
+    def get_gmdate(self):
+        return self.gmdate
+
+    def set_gmdate(self, gmdate):
+        self.gmdate = gmdate
+        self.set_pparam(self.prefix+"-"+self.gmdate+"-psr.params" if self.psrmode != 0 else "/dev/null")
+        self.set_psrfilename(self.prefix+"-"+self.gmdate+"-psr.rfb8" if self.psrmode != 0 else "/dev/null")
 
     def get_fstop(self):
         return self.fstop
@@ -1267,6 +1252,13 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.set_curr_dx2(helper.curr_diff(self.fft_probed,self.enable_normalize,self.fftsize,1))
         self.set_fft_log_status(helper.fft_log(self.fft_probed,self.fft2_probed,self.corr_probed,self.ifreq,self.samp_rate,self.longitude,self.enable_normalize,self.prefix,self.declination,self.rfilist,self.dcgain,self.fft_avg,self.mode,self.zerotime,self.decfile,self.tp_interval,self.spec_interval,self.fft_hz))
 
+    def get_ebw(self):
+        return self.ebw
+
+    def set_ebw(self, ebw):
+        self.ebw = ebw
+        self.set_pparamstr("%.2f,%.2f,%.4f,%.4f,%.4f,%d\n" % (self.psrate/1e3, self.pchanwidth/1e3, self.ifreq/1.0e6,self.samp_rate/1.0e6,self.ebw,self.fbsize))
+
     def get_declination(self):
         return self.declination
 
@@ -1323,12 +1315,6 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
         self.ang = ang
         self.set_frotate(helper.fringe_stop (self.tp_pacer, self.ra, self.decln, self.longitude, self.latitude, self.baseline, self.fstop, self.ang, self.ifreq))
 
-    def get_wrstatus(self):
-        return self.wrstatus
-
-    def set_wrstatus(self, wrstatus):
-        self.wrstatus = wrstatus
-
     def get_winsum(self):
         return self.winsum
 
@@ -1382,6 +1368,18 @@ class SpectroRadiometer(gr.top_block, Qt.QWidget):
 
     def set_psrfilename(self, psrfilename):
         self.psrfilename = psrfilename
+
+    def get_pparamstr(self):
+        return self.pparamstr
+
+    def set_pparamstr(self, pparamstr):
+        self.pparamstr = pparamstr
+
+    def get_pparam(self):
+        return self.pparam
+
+    def set_pparam(self, pparam):
+        self.pparam = pparam
 
     def get_mode_map(self):
         return self.mode_map
